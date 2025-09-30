@@ -25,16 +25,16 @@
         platform = platformInfo.platform;
         arch = platformInfo.arch;
 
-        # SHA256 hashes for each platform (you'll need to update these)
+        # SHA256 hashes for each platform
         hashes = {
-          "linux-x64" = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+          "linux-x64" = "sha256-yFuxZik1kzspcn6Lg47S0kHU9KG5yj1UY+1wZfH28K4=";
           "linux-arm64" = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
           "darwin-x64" = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
           "darwin-arm64" = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
         };
 
         rgHashes = {
-          "linux-x64" = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+          "linux-x64" = "sha256-viR2yXY0K5IWYRtKhMG8LsZIjsXHkeoBmhMnJ2RO8Zw=";
           "linux-arm64" = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
           "darwin-x64" = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
           "darwin-arm64" = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
@@ -58,6 +58,11 @@
 
           nativeBuildInputs = [ pkgs.makeWrapper ];
 
+          rgSrc = pkgs.fetchurl {
+            url = "https://downloads.factory.ai/ripgrep/${platform}/${arch}/rg";
+            hash = rgHashes.${platformKey};
+          };
+
           installPhase = ''
             runHook preInstall
 
@@ -67,16 +72,8 @@
             # Install the main droid binary
             install -m755 $src $out/bin/droid
 
-            # Download and install ripgrep
-            ${pkgs.fetchurl {
-              url = "https://downloads.factory.ai/ripgrep/${platform}/${arch}/rg";
-              hash = rgHashes.${platformKey};
-            }}
-            cp ${pkgs.fetchurl {
-              url = "https://downloads.factory.ai/ripgrep/${platform}/${arch}/rg";
-              hash = rgHashes.${platformKey};
-            }} $out/lib/factory/rg
-            chmod +x $out/lib/factory/rg
+            # Install ripgrep
+            install -m755 $rgSrc $out/lib/factory/rg
 
             # Wrap droid to ensure ripgrep is in PATH
             wrapProgram $out/bin/droid \
